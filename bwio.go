@@ -58,7 +58,7 @@ func (l *limiter) reset() {
 
 func (l *limiter) limit(n, bufsize int) {
 	l.bucket += int64(n)
-	bucketAge := time.Now().Sub(l.start)
+	bucketAge := time.Since(l.start)
 	penalty := time.Duration(l.bucket)*time.Second/time.Duration(l.bandwidth) - bucketAge
 
 	if penalty > 0 {
