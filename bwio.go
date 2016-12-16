@@ -76,7 +76,7 @@ func (l *limiter) limit(n, bufsize int) {
 	}
 }
 
-// Reader wraps another reader that maintains a given bandwidth.
+// Reader wraps another reader and maintains a given bandwidth.
 type Reader struct {
 	lim limiter
 	src io.Reader
@@ -92,7 +92,7 @@ func NewReader(r io.Reader, bandwidth int) *Reader {
 	return reader
 }
 
-// Read implements the io.Reader interface, but maintains the given bandwidth.
+// Read implements the io.Reader interface and maintains a given bandwidth.
 func (r *Reader) Read(p []byte) (n int, err error) {
 	r.lim.init()
 
@@ -107,13 +107,13 @@ func (r *Reader) Read(p []byte) (n int, err error) {
 	return n, err
 }
 
-// Writer wraps another writer that maintains a given bandwidth.
+// Writer wraps another writer and maintains a given bandwidth.
 type Writer struct {
 	lim limiter
 	dst io.Writer
 }
 
-// NewWriter returns a new writer that wraps writer d and maintains the given
+// NewWriter returns a new writer that wraps writer d and maintains a given
 // bandwidth.
 func NewWriter(d io.Writer, bandwidth int) *Writer {
 	writer := &Writer{
@@ -123,7 +123,7 @@ func NewWriter(d io.Writer, bandwidth int) *Writer {
 	return writer
 }
 
-// Write implements the io.Writer interface, but maintains the given bandwidth.
+// Write implements the io.Writer interface and maintains the given bandwidth.
 func (w *Writer) Write(p []byte) (n int, err error) {
 	w.lim.init()
 
