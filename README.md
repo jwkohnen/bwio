@@ -7,7 +7,7 @@
 Package bwio provides wrappers for io.Reader, io.Writer, io.Copy and
 io.CopyBuffer that limit the throughput to a given bandwidth. The limiter
 uses an internal time bucket and hibernates each io operation for short time
-time periods, whenever the configured bandwidth has been exceeded.
+periods, whenever the configured bandwidth has been exceeded.
 
 The limiter tries to detect longer stalls and resets the bucket such that
 stalls do not cause subsequent high bursts. Usually you should choose small
