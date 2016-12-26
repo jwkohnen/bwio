@@ -19,7 +19,7 @@
 // uses an internal time bucket and hibernates each io operation for short time
 // periods, whenever the configured bandwidth has been exceeded.
 //
-// `bandwith` is defined as bytes per second.
+// `bandwidth` is defined as bytes per second.
 //
 // The limiter tries to detect longer stalls and resets the bucket such that
 // stalls do not cause subsequent high bursts. Usually you should choose small
