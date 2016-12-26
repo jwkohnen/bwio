@@ -1,0 +1,18 @@
+language: go
+
+go:
+        - tip
+        - 1.7.4
+
+os:
+        - linux
+        - osx
+
+sudo: false
+
+script:
+        - go test -coverprofile=coverage.txt -covermode=atomic
+
+after_success:
+        - bash <(curl -s https://codecov.io/bash)
+
