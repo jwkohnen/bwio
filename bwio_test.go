@@ -61,8 +61,8 @@ func TestRead(t *testing.T) {
 		t.Errorf("Want %d bytes, got %d.", 1<<20, n)
 	}
 	t.Logf("Read %d bytes in %s", n, dur)
-	if dur < 3800*time.Millisecond || dur > 4200*time.Millisecond {
-		t.Errorf("Took %s, want 8s.", dur)
+	if dur < 3600*time.Millisecond || dur > 4400*time.Millisecond {
+		t.Errorf("Took %s, want 4s.", dur)
 	}
 }
 
@@ -82,8 +82,8 @@ func TestWrite(t *testing.T) {
 		t.Errorf("Want %d bytes, got %d.", 1<<20, n)
 	}
 	t.Logf("Wrote %d bytes in %s.", n, dur)
-	if dur < 3800*time.Millisecond || dur > 4200*time.Millisecond {
-		t.Errorf("Took %s, want 8s.", dur)
+	if dur < 3600*time.Millisecond || dur > 4400*time.Millisecond {
+		t.Errorf("Took %s, want 4s.", dur)
 	}
 }
 
@@ -102,8 +102,8 @@ func TestCopy(t *testing.T) {
 		t.Errorf("Want %d bytes, got %d.", 1<<20, n)
 	}
 	t.Logf("Copied %d bytes in %s.", n, dur)
-	if dur < 3800*time.Millisecond || dur > 4200*time.Millisecond {
-		t.Errorf("Took %s, want 8s.", dur)
+	if dur < 3600*time.Millisecond || dur > 4400*time.Millisecond {
+		t.Errorf("Took %s, want 4s.", dur)
 	}
 
 }
