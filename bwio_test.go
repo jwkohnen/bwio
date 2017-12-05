@@ -140,17 +140,17 @@ func TestIllegalLimit(t *testing.T) {
 	}
 }
 
-var poison = errors.New("poison")
+var errPoison = errors.New("poison")
 
 type pReader struct{}
 type pWriter struct{}
 
 func (*pReader) Read(_ []byte) (int, error) {
-	return 0, poison
+	return 0, errPoison
 }
 
 func (*pWriter) Write(_ []byte) (int, error) {
-	return 0, poison
+	return 0, errPoison
 }
 
 func TestError(t *testing.T) {
@@ -160,8 +160,8 @@ func TestError(t *testing.T) {
 		t.Parallel()
 		lr := NewReader(new(pReader), 1)
 		_, err := io.Copy(ioutil.Discard, lr)
-		if err != poison {
-			t.Errorf("Want %v, got %v", poison, err)
+		if err != errPoison {
+			t.Errorf("Want %v, got %v", errPoison, err)
 		}
 	})
 	t.Run("write", func(t *testing.T) {
@@ -169,30 +169,30 @@ func TestError(t *testing.T) {
 		lw := NewWriter(new(pWriter), 1)
 		r := bytes.NewReader([]byte{0x00})
 		_, err := io.Copy(lw, r)
-		if err != poison {
-			t.Errorf("Want %v, got %v", poison, err)
+		if err != errPoison {
+			t.Errorf("Want %v, got %v", errPoison, err)
 		}
 	})
 	t.Run("copyR", func(t *testing.T) {
 		t.Parallel()
 		_, err := Copy(ioutil.Discard, new(pReader), 1)
-		if err != poison {
-			t.Errorf("Want %v, got %v", poison, err)
+		if err != errPoison {
+			t.Errorf("Want %v, got %v", errPoison, err)
 		}
 	})
 	t.Run("copyW", func(t *testing.T) {
 		t.Parallel()
 		r := bytes.NewReader([]byte{0x00})
 		_, err := Copy(new(pWriter), r, 1)
-		if err != poison {
-			t.Errorf("Want %v, got %v", poison, err)
+		if err != errPoison {
+			t.Errorf("Want %v, got %v", errPoison, err)
 		}
 	})
 	t.Run("copyRW", func(t *testing.T) {
 		t.Parallel()
 		_, err := Copy(new(pWriter), new(pReader), 1)
-		if err != poison {
-			t.Errorf("Want %v, got %v", poison, err)
+		if err != errPoison {
+			t.Errorf("Want %v, got %v", errPoison, err)
 		}
 	})
 }
