@@ -17,6 +17,8 @@
 package bwio
 
 import (
+	"bytes"
+	"errors"
 	"io"
 	"io/ioutil"
 	"testing"
@@ -106,4 +108,91 @@ func TestCopy(t *testing.T) {
 		t.Errorf("Took %s, want 4s.", dur)
 	}
 
+}
+
+func TestIllegalLimit(t *testing.T) {
+	t.Parallel()
+
+	testt := []struct {
+		name  string
+		size  int
+		panic bool
+	}{
+		{"negative", -1, true},
+		{"zero", 0, true},
+		{"one", 1, false},
+	}
+	for _, testc := range testt {
+		t.Run(testc.name, func(t *testing.T) {
+			defer func() {
+				r := recover()
+				if testc.panic && r == nil {
+					t.Error("Should have paniced, but didn't.")
+				}
+				if !testc.panic && r != nil {
+					t.Errorf("Shouldn't have paniced, but did: %v", r)
+				}
+			}()
+			r := bytes.NewReader([]byte{0x00})
+			lr := NewReader(r, testc.size)
+			_, _ = io.Copy(ioutil.Discard, lr)
+		})
+	}
+}
+
+var poison = errors.New("poison")
+
+type pReader struct{}
+type pWriter struct{}
+
+func (*pReader) Read(_ []byte) (int, error) {
+	return 0, poison
+}
+
+func (*pWriter) Write(_ []byte) (int, error) {
+	return 0, poison
+}
+
+func TestError(t *testing.T) {
+	t.Parallel()
+
+	t.Run("read", func(t *testing.T) {
+		t.Parallel()
+		lr := NewReader(new(pReader), 1)
+		_, err := io.Copy(ioutil.Discard, lr)
+		if err != poison {
+			t.Errorf("Want %v, got %v", poison, err)
+		}
+	})
+	t.Run("write", func(t *testing.T) {
+		t.Parallel()
+		lw := NewWriter(new(pWriter), 1)
+		r := bytes.NewReader([]byte{0x00})
+		_, err := io.Copy(lw, r)
+		if err != poison {
+			t.Errorf("Want %v, got %v", poison, err)
+		}
+	})
+	t.Run("copyR", func(t *testing.T) {
+		t.Parallel()
+		_, err := Copy(ioutil.Discard, new(pReader), 1)
+		if err != poison {
+			t.Errorf("Want %v, got %v", poison, err)
+		}
+	})
+	t.Run("copyW", func(t *testing.T) {
+		t.Parallel()
+		r := bytes.NewReader([]byte{0x00})
+		_, err := Copy(new(pWriter), r, 1)
+		if err != poison {
+			t.Errorf("Want %v, got %v", poison, err)
+		}
+	})
+	t.Run("copyRW", func(t *testing.T) {
+		t.Parallel()
+		_, err := Copy(new(pWriter), new(pReader), 1)
+		if err != poison {
+			t.Errorf("Want %v, got %v", poison, err)
+		}
+	})
 }
