@@ -20,7 +20,7 @@ this is not well tested.
 
 ## Monotonic time
 
-Support for monotonic time before Go version 1.8 was implemented in a branch,
+Support for monotonic time before Go version 1.9 was implemented in a branch,
 but has been dropped. Use Go version 1.9 or later in order to profit from 
 transparent non-monotonic time robustness.
 
