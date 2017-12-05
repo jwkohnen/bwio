@@ -53,7 +53,7 @@ func TestRead(t *testing.T) {
 
 	start := time.Now()
 	n, err := io.Copy(ioutil.Discard, br)
-	dur := time.Now().Sub(start)
+	dur := time.Since(start)
 	if err != nil {
 		t.Error(err)
 	}
@@ -74,7 +74,7 @@ func TestWrite(t *testing.T) {
 
 	start := time.Now()
 	n, err := io.Copy(bw, tr)
-	dur := time.Now().Sub(start)
+	dur := time.Since(start)
 	if err != nil {
 		t.Error(err)
 	}
@@ -94,7 +94,7 @@ func TestCopy(t *testing.T) {
 
 	start := time.Now()
 	n, err := Copy(ioutil.Discard, tr, 500<<10)
-	dur := time.Now().Sub(start)
+	dur := time.Since(start)
 	if err != nil {
 		t.Error(err)
 	}
