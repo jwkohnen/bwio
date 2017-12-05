@@ -56,7 +56,7 @@ func (l *limiter) reset() {
 	l.start = time.Now()
 }
 
-func (l *limiter) limit(n, bufsize int) {
+func (l *limiter) limit(n, bufSize int) {
 	l.bucket += int64(n)
 	bucketAge := time.Since(l.start)
 	penalty := time.Duration(l.bucket)*time.Second/time.Duration(l.bandwidth) - bucketAge
@@ -64,15 +64,16 @@ func (l *limiter) limit(n, bufsize int) {
 	if penalty > 0 {
 		time.Sleep(penalty)
 		l.reset()
-	} else {
-		// Prevent peak after stall. Compensate in case of large buffer
-		// and small bandwidth. TODO: The test cases could get more
-		// love.
-		compensation := time.Duration(bufsize/l.bandwidth) * time.Second
-		stallThreshold := time.Second + compensation
-		if bucketAge > stallThreshold {
-			l.reset()
-		}
+		return
+	}
+
+	// Prevent peak after stall. Compensate in case of large buffer
+	// and small bandwidth. TODO: The test cases could get more
+	// love.
+	compensation := time.Duration(bufSize/l.bandwidth) * time.Second
+	stallThreshold := time.Second + compensation
+	if bucketAge > stallThreshold {
+		l.reset()
 	}
 }
 
@@ -150,6 +151,6 @@ func CopyBuffer(dst io.Writer, src io.Reader, bandwidth int, buf []byte) (writte
 	if len(buf) == 0 {
 		buf = make([]byte, 16<<10)
 	}
-	bwreader := NewReader(src, bandwidth)
-	return io.CopyBuffer(dst, bwreader, buf)
+	bwReader := NewReader(src, bandwidth)
+	return io.CopyBuffer(dst, bwReader, buf)
 }
