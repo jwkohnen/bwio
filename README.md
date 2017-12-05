@@ -18,6 +18,12 @@ buffer sizes for low bandwidths and vice versa. The limiter tries to
 compensate for high buffer size / bandwidth ratio when detecting stalls, but
 this is not well tested.
 
+## Monotonic time
+
+Support for monotonic time before Go version 1.8 was implemented in a branch,
+but has been dropped. Use Go version 1.9 or later in order to profit from 
+transparent non-monotonic time robustness.
+
 ## License
 
 Copyright (c) 2017 Johannes Kohnen <wjkohnen@users.noreply.github.com>
