@@ -21,6 +21,7 @@ import (
 	"errors"
 	"io"
 	"io/ioutil"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -110,26 +111,22 @@ func TestCopy(t *testing.T) {
 
 }
 
-func TestIllegalLimit(t *testing.T) {
+func TestPanicRegression(t *testing.T) {
 	t.Parallel()
 
 	testt := []struct {
-		name  string
-		size  int
-		panic bool
+		name string
+		size int
 	}{
-		{"negative", -1, true},
-		{"zero", 0, true},
-		{"one", 1, false},
+		{"negative", -1},
+		{"zero", 0},
+		{"one", 1},
 	}
 	for _, testc := range testt {
 		t.Run(testc.name, func(t *testing.T) {
 			defer func() {
 				r := recover()
-				if testc.panic && r == nil {
-					t.Error("Should have paniced, but didn't.")
-				}
-				if !testc.panic && r != nil {
+				if r != nil {
 					t.Errorf("Shouldn't have paniced, but did: %v", r)
 				}
 			}()
@@ -156,43 +153,43 @@ func (*pWriter) Write(_ []byte) (int, error) {
 func TestError(t *testing.T) {
 	t.Parallel()
 
-	t.Run("read", func(t *testing.T) {
-		t.Parallel()
-		lr := NewReader(new(pReader), 1)
-		_, err := io.Copy(ioutil.Discard, lr)
-		if err != errPoison {
-			t.Errorf("Want %v, got %v", errPoison, err)
-		}
-	})
-	t.Run("write", func(t *testing.T) {
-		t.Parallel()
-		lw := NewWriter(new(pWriter), 1)
-		r := bytes.NewReader([]byte{0x00})
-		_, err := io.Copy(lw, r)
-		if err != errPoison {
-			t.Errorf("Want %v, got %v", errPoison, err)
-		}
-	})
-	t.Run("copyR", func(t *testing.T) {
-		t.Parallel()
-		_, err := Copy(ioutil.Discard, new(pReader), 1)
-		if err != errPoison {
-			t.Errorf("Want %v, got %v", errPoison, err)
-		}
-	})
-	t.Run("copyW", func(t *testing.T) {
-		t.Parallel()
-		r := bytes.NewReader([]byte{0x00})
-		_, err := Copy(new(pWriter), r, 1)
-		if err != errPoison {
-			t.Errorf("Want %v, got %v", errPoison, err)
-		}
-	})
-	t.Run("copyRW", func(t *testing.T) {
-		t.Parallel()
-		_, err := Copy(new(pWriter), new(pReader), 1)
-		if err != errPoison {
-			t.Errorf("Want %v, got %v", errPoison, err)
-		}
-	})
+	oneByteReader := func() io.Reader { return bytes.NewReader([]byte{0x00}) }
+
+	for bw := -1; bw <= 1; bw++ {
+		bws := strconv.Itoa(bw)
+		t.Run("read"+bws, func(t *testing.T) {
+			lr := NewReader(new(pReader), bw)
+			_, err := io.Copy(ioutil.Discard, lr)
+			if err != errPoison {
+				t.Errorf("Want %v, got %v", errPoison, err)
+			}
+		})
+		t.Run("write"+bws, func(t *testing.T) {
+			lw := NewWriter(new(pWriter), bw)
+			r := oneByteReader()
+			_, err := io.Copy(lw, r)
+			if err != errPoison {
+				t.Errorf("Want %v, got %v", errPoison, err)
+			}
+		})
+		t.Run("copyR"+bws, func(t *testing.T) {
+			_, err := Copy(ioutil.Discard, new(pReader), bw)
+			if err != errPoison {
+				t.Errorf("Want %v, got %v", errPoison, err)
+			}
+		})
+		t.Run("copyW"+bws, func(t *testing.T) {
+			r := oneByteReader()
+			_, err := Copy(new(pWriter), r, bw)
+			if err != errPoison {
+				t.Errorf("Want %v, got %v", errPoison, err)
+			}
+		})
+		t.Run("copyRW"+bws, func(t *testing.T) {
+			_, err := Copy(new(pWriter), new(pReader), bw)
+			if err != errPoison {
+				t.Errorf("Want %v, got %v", errPoison, err)
+			}
+		})
+	}
 }

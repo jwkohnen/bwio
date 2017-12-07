@@ -42,10 +42,6 @@ type limiter struct {
 
 func (l *limiter) init() {
 	if !l.isInitialized {
-		if l.bandwidth < 1 {
-			panic("bandwidth must be greater than zero")
-		}
-
 		l.reset()
 		l.isInitialized = true
 	}
@@ -57,6 +53,11 @@ func (l *limiter) reset() {
 }
 
 func (l *limiter) limit(n, bufSize int) {
+	// do not limit if desired bandwidth is zero or negative
+	if l.bandwidth <= 0 {
+		return
+	}
+
 	l.bucket += int64(n)
 	bucketAge := time.Since(l.start)
 	penalty := time.Duration(l.bucket)*time.Second/time.Duration(l.bandwidth) - bucketAge
@@ -84,7 +85,8 @@ type Reader struct {
 }
 
 // NewReader returns a new reader that wraps reader r and maintains the
-// given bandwidth.
+// given bandwidth. If bandwidth is zero or negative, the Reader will not
+// limit.
 func NewReader(r io.Reader, bandwidth int) *Reader {
 	reader := &Reader{
 		src: r,
@@ -115,7 +117,7 @@ type Writer struct {
 }
 
 // NewWriter returns a new writer that wraps writer d and maintains a given
-// bandwidth.
+// bandwidth. If bandwidth is zero or negative, the Writer will not limit.
 func NewWriter(d io.Writer, bandwidth int) *Writer {
 	writer := &Writer{
 		dst: d,
@@ -146,7 +148,7 @@ func Copy(dst io.Writer, src io.Reader, bandwidth int) (written int64, err error
 
 // CopyBuffer copies the same way io.CopyBuffer does, except maintaining the
 // given bandwidth. If buf is nil, CopyBuffer will create a buffer with size of
-// 16 KiBytes.
+// 16 KiBytes. If bandwidth is zero or negative, the copy will not be limited.
 func CopyBuffer(dst io.Writer, src io.Reader, bandwidth int, buf []byte) (written int64, err error) {
 	if len(buf) == 0 {
 		buf = make([]byte, 16<<10)
